@@ -27,7 +27,7 @@ dynamic CREDENTIALS = {
   'client_id': '',        # Enter your client id
   'client_secret': '',    # Enter your client secret
   'sandbox': false,       # Enable or disable sandbox mode
-  'pix_cert': 'assets/certs/cert.key.pem',         # Enter the certificate key directory 
+  'pix_cert': 'assets/certs/cert.crt.pem',         # Enter the certificate directory 
   'pix_private_key': 'assets/certs/cert.key.pem'   # Enter the certificate key directory 
 };
 
