@@ -132,7 +132,7 @@ class _PixCreateChargeState extends State<PixCreateCharge> {
     return FormDataField(
       helperText: "Texto a ser apresentado ao pagador ",
       label: "Informação adicional",
-      hintText: "Ex: emailcliente@servidor.com.br",
+      hintText: "Ex: Cobrança produto X",
       line: 3,
       controller: _infoController,
       textInputType: TextInputType.text,

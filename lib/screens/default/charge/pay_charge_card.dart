@@ -14,7 +14,6 @@ class _PayChargeCardState extends State<PayChargeCard> {
   TextEditingController _nameController = new TextEditingController();
   TextEditingController _cpfController = new TextEditingController();
   TextEditingController _phoneController = new TextEditingController();
-  TextEditingController _paymentTokenController = new TextEditingController();
   TextEditingController _streetController = new TextEditingController();
   TextEditingController _numberController = new TextEditingController();
   TextEditingController _neighborhoodController = new TextEditingController();
@@ -69,9 +68,6 @@ class _PayChargeCardState extends State<PayChargeCard> {
                 _form(_formBirth()),
                 _form(_formCpf()),
                 _form(_formPhone()),
-                _headerForm("Cartão",
-                    "O campo abaixo é referente ao token de pagamento gerado para pagamentos com cartão."),
-                _form(_formPaymentToken()),
                 Container(height: 100)
               ],
             )));
@@ -176,17 +172,6 @@ class _PayChargeCardState extends State<PayChargeCard> {
       hintText: "ex: Av. JK",
       line: 1,
       controller: _streetController,
-      textInputType: TextInputType.text,
-      validator: (value) => value.isEmpty ? "Campo Obrigatório!" : null,
-    );
-  }
-
-  Widget _formPaymentToken() {
-    return FormDataField(
-      helperText: "Token de pagamento",
-      label: "PaymentToken*",
-      line: 1,
-      controller: _paymentTokenController,
       textInputType: TextInputType.text,
       validator: (value) => value.isEmpty ? "Campo Obrigatório!" : null,
     );
@@ -349,42 +334,60 @@ class _PayChargeCardState extends State<PayChargeCard> {
   void _payCharge() {
     setState(() => _loading = true);
 
-    Map<String, dynamic> params = {
-      "id": _idController.text,
+    Map<String, Object> card = {
+      "brand": "",
+      "number": "",
+      "cvv": "",
+      "expiration_month": "",
+      "expiration_year": ""
     };
 
-    Map<String, dynamic> body = {
-      "payment": {
-        "credit_card": {
-          "installments": 1,
-          "payment_token": _paymentTokenController.text,
-          "billing_address": {
-            "street": _streetController.text,
-            "number": int.parse(_numberController.text),
-            "neighborhood": _neighborhoodController.text,
-            "zipcode": _zipcodeController.text,
-            "city": _cityController.text,
-            "state": _stateController.text
-          },
-          "customer": {
-            "name": _nameController.text,
-            "email": _emailController.text,
-            "cpf": _cpfController.text,
-            "birth": _birthController.text,
-            "phone_number": _phoneController.text
+    gn.call("paymentToken", body: card).then((value) {
+      Map<String, dynamic> params = {
+        "id": _idController.text,
+      };
+
+      Map<String, dynamic> body = {
+        "payment": {
+          "credit_card": {
+            "installments": 1,
+            "payment_token": value['data']['payment_token'],
+            "billing_address": {
+              "street": _streetController.text,
+              "number": int.parse(_numberController.text),
+              "neighborhood": _neighborhoodController.text,
+              "zipcode": _zipcodeController.text,
+              "city": _cityController.text,
+              "state": _stateController.text
+            },
+            "customer": {
+              "name": _nameController.text,
+              "email": _emailController.text,
+              "cpf": _cpfController.text,
+              "birth": _birthController.text,
+              "phone_number": _phoneController.text
+            }
           }
         }
-      }
-    };
+      };
 
-    gn.call("payCharge", params: params, body: body).then((value) {
-      setState(() => _loading = false);
-      _showMessage("Cartão Associado!", Theme.of(context).accentColor,
-          MediaQuery.of(context).size.height);
-    }).catchError((error) {
-      setState(() => _loading = false);
-      _showMessage(
-          error.toString(), Colors.red, MediaQuery.of(context).size.height);
+      gn.call("payCharge", params: params, body: body).then((value) {
+        setState(() => _loading = false);
+        _showMessage("Cartão Associado!", Theme
+            .of(context)
+            .accentColor,
+            MediaQuery
+                .of(context)
+                .size
+                .height);
+      }).catchError((error) {
+        setState(() => _loading = false);
+        _showMessage(
+            error.toString(), Colors.red, MediaQuery
+            .of(context)
+            .size
+            .height);
+      });
     });
   }
 }
