@@ -19,7 +19,10 @@ class _InstallmentsState extends State<Installments> {
   @override
   void initState() {
     super.initState();
-    gn = new Gerencianet(CREDENTIALS);
+    Map credentials = new Map.from(CREDENTIALS);
+    credentials.remove("pix_cert");
+    credentials.remove("pix_private_key");
+    gn = new Gerencianet(credentials);
   }
 
   @override
