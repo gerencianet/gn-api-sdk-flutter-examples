@@ -13,7 +13,6 @@ class _CreateChargeCardState extends State<CreateChargeCard> {
   TextEditingController _nameController = new TextEditingController();
   TextEditingController _cpfController = new TextEditingController();
   TextEditingController _phoneController = new TextEditingController();
-  TextEditingController _paymentTokenController = new TextEditingController();
   TextEditingController _streetController = new TextEditingController();
   TextEditingController _numberController = new TextEditingController();
   TextEditingController _neighborhoodController = new TextEditingController();
@@ -73,9 +72,6 @@ class _CreateChargeCardState extends State<CreateChargeCard> {
                 _form(_formBirth()),
                 _form(_formCpf()),
                 _form(_formPhone()),
-                _headerForm("Cartão",
-                    "O campo abaixo é referente ao token de pagamento gerado para pagamentos com cartão."),
-                _form(_formPaymentToken()),
                 Container(height: 100)
               ],
             )));
@@ -216,17 +212,6 @@ class _CreateChargeCardState extends State<CreateChargeCard> {
       hintText: "ex: Av. JK",
       line: 1,
       controller: _streetController,
-      textInputType: TextInputType.text,
-      validator: (value) => value.isEmpty ? "Campo Obrigatório!" : null,
-    );
-  }
-
-  Widget _formPaymentToken() {
-    return FormDataField(
-      helperText: "Token de pagamento",
-      label: "PaymentToken*",
-      line: 1,
-      controller: _paymentTokenController,
       textInputType: TextInputType.text,
       validator: (value) => value.isEmpty ? "Campo Obrigatório!" : null,
     );
@@ -377,45 +362,55 @@ class _CreateChargeCardState extends State<CreateChargeCard> {
 
   void _oneStep() {
     setState(() => _loading = true);
-    Map<String, dynamic> body = {
-      "items": [
-        {
-          "name": _nameItemController.text,
-          "value": int.parse(_valueController.text),
-          "amount": int.parse(_amountController.text)
-        }
-      ],
-      "payment": {
-        "credit_card": {
-          "installments": 1,
-          "payment_token": _paymentTokenController.text,
-          "billing_address": {
-            "street": _streetController.text,
-            "number": int.parse(_numberController.text),
-            "neighborhood": _neighborhoodController.text,
-            "zipcode": _zipcodeController.text,
-            "city": _cityController.text,
-            "state": _stateController.text
-          },
-          "customer": {
-            "name": _nameController.text,
-            "email": _emailController.text,
-            "cpf": _cpfController.text,
-            "birth": _birthController.text,
-            "phone_number": _phoneController.text
-          }
-        }
-      }
+
+    Map<String, Object> card = {
+      "brand": "",
+      "number": "",
+      "cvv": "",
+      "expiration_month": "",
+      "expiration_year": ""
     };
 
-    gn.call("oneStep",  body: body).then((value) {
-      setState(() => _loading = false);
-      _showMessage("Transação Criada!", Theme.of(context).accentColor,
-          MediaQuery.of(context).size.height);
-    }).catchError((error) {
-      setState(() => _loading = false);
-      _showMessage(
-          error.toString(), Colors.red, MediaQuery.of(context).size.height);
+    gn.call("paymentToken", body: card).then((value) {
+      Map<String, dynamic> body = {
+        "items": [
+          {
+            "name": _nameItemController.text,
+            "value": int.parse(_valueController.text),
+            "amount": int.parse(_amountController.text)
+          }
+        ],
+        "payment": {
+          "credit_card": {
+            "installments": 1,
+            "payment_token": value['data']['payment_token'],
+            "billing_address": {
+              "street": _streetController.text,
+              "number": int.parse(_numberController.text),
+              "neighborhood": _neighborhoodController.text,
+              "zipcode": _zipcodeController.text,
+              "city": _cityController.text,
+              "state": _stateController.text
+            },
+            "customer": {
+              "name": _nameController.text,
+              "email": _emailController.text,
+              "cpf": _cpfController.text,
+              "birth": _birthController.text,
+              "phone_number": _phoneController.text
+            }
+          }
+        }
+      };
+      gn.call("oneStep", body: body).then((value) {
+        setState(() => _loading = false);
+        _showMessage("Transação Criada!", Theme.of(context).accentColor,
+            MediaQuery.of(context).size.height);
+      }).catchError((error) {
+        setState(() => _loading = false);
+        _showMessage(
+            error.toString(), Colors.red, MediaQuery.of(context).size.height);
+      });
     });
   }
 }
